@@ -12,12 +12,12 @@ from typing import Optional
 
 import numpy as np
 
-from ....acquisition.generator import InfrasoundGenerator
-from ....acquisition.models import DataSource, EventType
-from ....acquisition.stream import StreamManager
-from ....ai.inference import InferenceEngine
-from ....signal_processing.features import extract_features, features_to_vector
-from ....signal_processing.pipeline import process_signal
+from acquisition.generator import InfrasoundGenerator
+from acquisition.models import DataSource, EventType
+from acquisition.stream import StreamManager
+from ai.inference import InferenceEngine
+from signal_processing.features import extract_features, features_to_vector
+from signal_processing.pipeline import process_signal
 from ..database.repositories.events import EventRepository
 from ..database.repositories.stations import StationRepository
 from ..websocket.manager import ws_manager
@@ -265,7 +265,7 @@ class DemoService:
 
     def get_latest_fft(self) -> dict:
         """Compute FFT on latest buffer."""
-        from ....signal_processing.fft import compute_fft
+        from signal_processing.fft import compute_fft
 
         if not self._signal_buffer or len(self._signal_buffer) < 64:
             return {"frequencies": [], "magnitudes": [], "n_fft": 0, "frequency_resolution": 0}
@@ -275,7 +275,7 @@ class DemoService:
 
     def get_latest_spectrogram(self) -> dict:
         """Compute spectrogram on latest buffer."""
-        from ....signal_processing.spectrogram import compute_stft
+        from signal_processing.spectrogram import compute_stft
 
         if not self._signal_buffer or len(self._signal_buffer) < 128:
             return {

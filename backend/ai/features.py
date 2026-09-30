@@ -7,7 +7,7 @@ in the AI pipeline.
 import numpy as np
 from numpy.typing import NDArray
 
-from ..signal_processing.features import extract_features, features_to_vector
+from signal_processing.features import extract_features, features_to_vector
 
 
 def prepare_features(

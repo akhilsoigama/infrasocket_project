@@ -12,7 +12,7 @@ class Settings:
     database_url: str = field(
         default_factory=lambda: os.getenv(
             "DATABASE_URL",
-            "postgresql://postgres:password@localhost:5432/infrasocket",
+            "postgresql://postgres:password@localhost:5454/infrasocket",
         )
     )
 
@@ -25,7 +25,7 @@ class Settings:
     # CORS
     cors_origins: list[str] = field(
         default_factory=lambda: os.getenv(
-            "CORS_ORIGINS", "http://localhost:5173,http://localhost:3000"
+            "CORS_ORIGINS", "*"
         ).split(",")
     )
 

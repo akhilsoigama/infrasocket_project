@@ -45,19 +45,23 @@ export function WaveformChart({
           paper_bgcolor: 'rgba(0,0,0,0)',
           plot_bgcolor: 'rgba(0,0,0,0)',
           xaxis: {
-            title: 'Time (s)',
+            title: { 
+              text: 'Time (s)',
+              font: { color: '#999' }
+            },
             gridcolor: '#333',
             zerolinecolor: '#444',
             tickfont: { color: '#999' },
-            titlefont: { color: '#999' },
             fixedrange: true, // disable zoom for performance on streaming
           },
           yaxis: {
-            title: 'Amplitude',
+            title: { 
+              text: 'Amplitude',
+              font: { color: '#999' }
+            },
             gridcolor: '#333',
             zerolinecolor: '#555',
             tickfont: { color: '#999' },
-            titlefont: { color: '#999' },
             fixedrange: true,
             // Keep y-axis relatively stable unless there are huge spikes
             range: [-2, 2],

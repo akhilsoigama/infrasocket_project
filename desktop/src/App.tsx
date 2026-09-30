@@ -4,6 +4,12 @@ import { createHashRouter, RouterProvider } from 'react-router-dom'
 import AppLayout from './layouts/AppLayout'
 import Overview from './pages/Overview'
 import LiveMonitoring from './pages/LiveMonitoring'
+import Stations from './pages/Stations'
+import Events from './pages/Events'
+import SignalAnalysis from './pages/SignalAnalysis'
+import AIInsights from './pages/AIInsights'
+import HistoricalData from './pages/HistoricalData'
+import Settings from './pages/Settings'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,12 +30,12 @@ const router = createHashRouter([
       { index: true, element: <Overview /> },
       { path: 'live', element: <LiveMonitoring /> },
       // Placeholders for other pages
-      { path: 'stations', element: <div className="p-8">Stations Page (Placeholder)</div> },
-      { path: 'events', element: <div className="p-8">Events Page (Placeholder)</div> },
-      { path: 'analysis', element: <div className="p-8">Signal Analysis (Placeholder)</div> },
-      { path: 'ai', element: <div className="p-8">AI Insights (Placeholder)</div> },
-      { path: 'history', element: <div className="p-8">Historical Data (Placeholder)</div> },
-      { path: 'settings', element: <div className="p-8">Settings (Placeholder)</div> },
+      { path: 'stations', element: <Stations /> },
+      { path: 'events', element: <Events /> },
+      { path: 'analysis', element: <SignalAnalysis /> },
+      { path: 'ai', element: <AIInsights /> },
+      { path: 'history', element: <HistoricalData /> },
+      { path: 'settings', element: <Settings /> },
     ],
   },
 ])
