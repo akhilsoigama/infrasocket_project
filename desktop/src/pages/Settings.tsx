@@ -1,12 +1,21 @@
-import { useQuery } from '@tanstack/react-query'
-import { CheckCircle2, Server, Settings as SettingsIcon, XCircle } from 'lucide-react'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import { CheckCircle2, Server, Settings as SettingsIcon, XCircle, Database, Play } from 'lucide-react'
+import { useState } from 'react'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { api } from '@/services/api'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { formatNumber } from '@/lib/utils'
 
 export default function Settings() {
+  const [datasetPath, setDatasetPath] = useState('E:/infra-socket/infrasokcet/dataset')
+  const mutation = useMutation({
+    mutationFn: (path: string) => api.validateDataset(path),
+  })
+
   // Fetch system health
   const { data: health, isLoading } = useQuery({
     queryKey: ['system-health'],
@@ -65,6 +74,81 @@ export default function Settings() {
             ) : (
               <div className="flex items-center text-destructive text-sm gap-2">
                 <XCircle className="h-4 w-4" /> Could not reach backend server
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" /> Dataset & Calibration
+            </CardTitle>
+            <CardDescription>Validate MiniSEED datasets and verify instrument responses</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-2">
+              <Input 
+                value={datasetPath} 
+                onChange={(e) => setDatasetPath(e.target.value)} 
+                placeholder="Path to directory containing .mseed files"
+                className="flex-1"
+              />
+              <Button 
+                onClick={() => mutation.mutate(datasetPath)}
+                disabled={mutation.isPending}
+              >
+                {mutation.isPending ? 'Running...' : <><Play className="mr-2 h-4 w-4" /> Run Validation</>}
+              </Button>
+            </div>
+
+            {mutation.isSuccess && mutation.data && (
+              <div className="rounded-md border bg-muted/30 p-4 space-y-4 mt-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground">Status</span>
+                    <Badge variant={mutation.data.status === 'PASS' ? 'success' : 'destructive'} className="w-fit">
+                      {mutation.data.status}
+                    </Badge>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground">Files Found</span>
+                    <span className="font-medium">{mutation.data.files_found}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground">Sampling Rate</span>
+                    <span className="font-medium">{mutation.data.sampling_rate || 'N/A'} Hz</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground">Windows</span>
+                    <span className="font-medium">{formatNumber(mutation.data.windows_processed)}</span>
+                  </div>
+                </div>
+
+                {mutation.data.files_found > 0 && (
+                  <>
+                    <Separator />
+                    <div className="space-y-2">
+                      <h4 className="text-sm font-medium">Channel Calibration Status</h4>
+                      <div className="flex gap-2 flex-wrap">
+                        {mutation.data.channels_detected.map(ch => (
+                          <Badge key={ch} variant="outline" className="border-primary/50 text-primary">
+                            {ch}: RESPONSE_CORRECTED
+                          </Badge>
+                        ))}
+                        {mutation.data.channels_detected.length === 0 && (
+                          <span className="text-xs text-muted-foreground">No channels detected</span>
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {mutation.data.message && (
+                  <div className="text-sm text-destructive mt-2">
+                    {mutation.data.message}
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

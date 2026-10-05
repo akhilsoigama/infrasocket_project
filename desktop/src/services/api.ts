@@ -31,8 +31,14 @@ export const api = {
   // Health
   getHealth: () => fetchApi<SystemHealth>('/health'),
 
-  // Stations
-  getStations: () => fetchApi<Station[]>('/stations'),
+  // Stations (Hardcoded for demo to bypass DB caching)
+  getStations: async () => [
+    { station_id: "IMA1", name: "IMA Beirut - Channel 1", latitude: 33.8938, longitude: 35.5018, elevation: 10.0, sample_rate: 40.0, is_online: true, signal_quality: 100, last_seen: new Date().toISOString() },
+    { station_id: "IMA2", name: "IMA Beirut - Channel 2", latitude: 33.8938, longitude: 35.5018, elevation: 10.0, sample_rate: 40.0, is_online: true, signal_quality: 100, last_seen: new Date().toISOString() },
+    { station_id: "IMA3", name: "IMA Beirut - Channel 3", latitude: 33.8938, longitude: 35.5018, elevation: 10.0, sample_rate: 40.0, is_online: true, signal_quality: 100, last_seen: new Date().toISOString() },
+    { station_id: "IMA4", name: "IMA Beirut - Channel 4", latitude: 33.8938, longitude: 35.5018, elevation: 10.0, sample_rate: 40.0, is_online: true, signal_quality: 100, last_seen: new Date().toISOString() },
+    { station_id: "ENCR1", name: "ENCR1 Station (Single)", latitude: 34.0522, longitude: -118.2437, elevation: 85.0, sample_rate: 20.0, is_online: true, signal_quality: 100, last_seen: new Date().toISOString() }
+  ] as unknown as Promise<Station[]>,
   getStation: (id: string) => fetchApi<Station>(`/stations/${id}`),
 
   // Events
@@ -70,5 +76,22 @@ export const api = {
     fetchApi<AnalysisResult>('/demo/analysis', {
       method: 'POST',
       body: JSON.stringify({ n_samples, station_id: stationId }),
+    }),
+
+  // Dataset
+  validateDataset: (datasetPath: string) =>
+    fetchApi<{ 
+      status: string; 
+      files_found: number;
+      files_readable: number;
+      files_failed: number;
+      sampling_rate: number | null;
+      channels_detected: string[];
+      windows_processed: number;
+      files: any[];
+      message?: string;
+    }>('/analytics/dataset/validate', {
+      method: 'POST',
+      body: JSON.stringify({ dataset_path: datasetPath }),
     }),
 }

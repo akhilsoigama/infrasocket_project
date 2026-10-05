@@ -1,12 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { createHashRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import AppLayout from './layouts/AppLayout'
 import Overview from './pages/Overview'
 import LiveMonitoring from './pages/LiveMonitoring'
 import Stations from './pages/Stations'
 import Events from './pages/Events'
-import SignalAnalysis from './pages/SignalAnalysis'
 import AIInsights from './pages/AIInsights'
 import HistoricalData from './pages/HistoricalData'
 import Settings from './pages/Settings'
@@ -21,8 +20,8 @@ const queryClient = new QueryClient({
   },
 })
 
-// Use HashRouter for Electron compatibility (file:// protocol)
-const router = createHashRouter([
+// Using BrowserRouter instead of HashRouter to remove the '#' from URLs
+const router = createBrowserRouter([
   {
     path: '/',
     element: <AppLayout />,
@@ -32,7 +31,6 @@ const router = createHashRouter([
       // Placeholders for other pages
       { path: 'stations', element: <Stations /> },
       { path: 'events', element: <Events /> },
-      { path: 'analysis', element: <SignalAnalysis /> },
       { path: 'ai', element: <AIInsights /> },
       { path: 'history', element: <HistoricalData /> },
       { path: 'settings', element: <Settings /> },

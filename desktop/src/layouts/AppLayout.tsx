@@ -15,21 +15,26 @@ import {
 import { useSystemStore } from '@/stores/systemStore'
 import { api } from '@/services/api'
 import { cn } from '@/lib/utils'
+import { useRealtimeSignal } from '@/hooks/useRealtimeSignal'
 
 const NAV_ITEMS = [
   { path: '/', label: 'Overview', icon: LayoutDashboard },
   { path: '/live', label: 'Live Monitoring', icon: Activity },
   { path: '/stations', label: 'Stations', icon: Radio },
   { path: '/events', label: 'Events', icon: AlertTriangle },
-  { path: '/analysis', label: 'Signal Analysis', icon: BarChart2 },
   { path: '/ai', label: 'AI Insights', icon: BrainCircuit },
   { path: '/history', label: 'Historical Data', icon: History },
   { path: '/settings', label: 'Settings', icon: Settings },
 ]
 
 export default function AppLayout() {
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
+  const queryParams = new URLSearchParams(search)
+  const activeStation = queryParams.get('station')
   const { setHealth, apiStatus, dbStatus, wsStatus } = useSystemStore()
+  
+  // Connect to websocket globally
+  useRealtimeSignal()
 
   useEffect(() => {
     // Check health on mount
@@ -63,21 +68,28 @@ export default function AppLayout() {
 
         {/* Navigation */}
         <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
-          {NAV_ITEMS.map(({ path, label, icon: Icon }) => (
-            <Link
-              key={path}
-              to={path}
-              className={cn(
-                'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
-                pathname === path
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-              )}
-            >
-              <Icon className="h-4 w-4" />
-              {label}
-            </Link>
-          ))}
+          {NAV_ITEMS.map(({ path, label, icon: Icon }) => {
+            let displayLabel = label;
+            if (path === '/live' && activeStation && pathname === '/live') {
+              displayLabel = `Live Monitoring (${activeStation})`;
+            }
+            
+            return (
+              <Link
+                key={path}
+                to={path}
+                className={cn(
+                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  pathname === path
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {displayLabel}
+              </Link>
+            )
+          })}
         </nav>
 
         {/* Status bar */}
