@@ -16,7 +16,6 @@ import { useEventStore } from '@/stores/eventStore'
 import { useSignalStore } from '@/stores/signalStore'
 
 export default function Overview() {
-  // Initialize realtime updates
   useRealtimeSignal()
   
   const { isRunning, setStatus } = useDemoStore()

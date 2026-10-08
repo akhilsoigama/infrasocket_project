@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import {
   Activity,
@@ -10,6 +10,9 @@ import {
   LayoutDashboard,
   Radio,
   Settings,
+  Sliders,
+  Menu,
+  ChevronLeft
 } from 'lucide-react'
 
 import { useSystemStore } from '@/stores/systemStore'
@@ -23,11 +26,13 @@ const NAV_ITEMS = [
   { path: '/stations', label: 'Stations', icon: Radio },
   { path: '/events', label: 'Events', icon: AlertTriangle },
   { path: '/ai', label: 'AI Insights', icon: BrainCircuit },
+  { path: '/calibration', label: 'Calibration', icon: Sliders },
   { path: '/history', label: 'Historical Data', icon: History },
   { path: '/settings', label: 'Settings', icon: Settings },
 ]
 
 export default function AppLayout() {
+  const [isCollapsed, setIsCollapsed] = useState(false)
   const { pathname, search } = useLocation()
   const queryParams = new URLSearchParams(search)
   const activeStation = queryParams.get('station')
@@ -54,20 +59,36 @@ export default function AppLayout() {
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
       {/* Sidebar */}
-      <aside className="flex w-64 flex-col border-r bg-card transition-sidebar">
+      <aside className={cn("flex flex-col border-r bg-card transition-all duration-300 relative", isCollapsed ? "w-20" : "w-64")}>
         {/* Header */}
-        <div className="flex h-14 items-center gap-2 border-b px-6">
-          <Activity className="h-6 w-6 text-primary" />
-          <div className="flex flex-col">
-            <span className="font-bold leading-tight">INFRA SOCKET</span>
-            <span className="text-2xs text-muted-foreground uppercase tracking-widest">
-              AI Monitoring
-            </span>
-          </div>
+        <div className="flex h-14 items-center justify-between border-b px-4">
+          {!isCollapsed ? (
+            <div className="flex items-center gap-2 overflow-hidden">
+              <Activity className="h-6 w-6 text-primary flex-shrink-0" />
+              <div className="flex flex-col whitespace-nowrap">
+                <span className="font-bold leading-tight">INFRA SOCKET</span>
+                <span className="text-2xs text-muted-foreground uppercase tracking-widest">
+                  AI Monitoring
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex justify-center">
+              <Activity className="h-6 w-6 text-primary flex-shrink-0" />
+            </div>
+          )}
         </div>
 
+        {/* Toggle Button */}
+        <button 
+          onClick={() => setIsCollapsed(!isCollapsed)} 
+          className="absolute -right-3 top-4 bg-primary text-primary-foreground rounded-full p-1 shadow-md z-10 hover:scale-110 transition-transform"
+        >
+          {isCollapsed ? <Menu className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        </button>
+
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
+        <nav className="flex-1 space-y-2 p-4 overflow-y-auto overflow-x-hidden">
           {NAV_ITEMS.map(({ path, label, icon: Icon }) => {
             let displayLabel = label;
             if (path === '/live' && activeStation && pathname === '/live') {
@@ -78,15 +99,17 @@ export default function AppLayout() {
               <Link
                 key={path}
                 to={path}
+                title={isCollapsed ? displayLabel : undefined}
                 className={cn(
-                  'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+                  'flex items-center rounded-md transition-colors',
+                  isCollapsed ? 'justify-center p-2' : 'gap-3 px-3 py-2',
                   pathname === path
                     ? 'bg-primary/10 text-primary'
                     : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
                 )}
               >
-                <Icon className="h-4 w-4" />
-                {displayLabel}
+                <Icon className={cn("flex-shrink-0", isCollapsed ? "h-6 w-6" : "h-5 w-5")} />
+                {!isCollapsed && <span className="text-sm font-medium whitespace-nowrap truncate">{displayLabel}</span>}
               </Link>
             )
           })}
@@ -94,10 +117,10 @@ export default function AppLayout() {
 
         {/* Status bar */}
         <div className="border-t bg-card p-4">
-          <div className="space-y-2 text-xs">
-            <StatusIndicator label="API" status={apiStatus} />
-            <StatusIndicator label="Database" status={dbStatus} />
-            <StatusIndicator label="WebSocket" status={wsStatus} />
+          <div className="space-y-3 text-xs">
+            <StatusIndicator label="API" status={apiStatus} isCollapsed={isCollapsed} />
+            <StatusIndicator label="Database" status={dbStatus} isCollapsed={isCollapsed} />
+            <StatusIndicator label="WebSocket" status={wsStatus} isCollapsed={isCollapsed} />
           </div>
         </div>
       </aside>
@@ -112,7 +135,7 @@ export default function AppLayout() {
   )
 }
 
-function StatusIndicator({ label, status }: { label: string; status: string }) {
+function StatusIndicator({ label, status, isCollapsed }: { label: string; status: string, isCollapsed?: boolean }) {
   const getStatusColor = (s: string) => {
     switch (s) {
       case 'connected':
@@ -128,12 +151,12 @@ function StatusIndicator({ label, status }: { label: string; status: string }) {
   }
 
   return (
-    <div className="flex items-center justify-between">
-      <span className="text-muted-foreground">{label}</span>
+    <div className={cn("flex items-center", isCollapsed ? "justify-center" : "justify-between")} title={isCollapsed ? `${label}: ${status}` : undefined}>
+      {!isCollapsed && <span className="text-muted-foreground whitespace-nowrap">{label}</span>}
       <div className="flex items-center gap-2">
-        <span className="capitalize">{status}</span>
+        {!isCollapsed && <span className="capitalize">{status}</span>}
         <div
-          className={cn('h-2 w-2 rounded-full', getStatusColor(status))}
+          className={cn('h-2 w-2 rounded-full flex-shrink-0', getStatusColor(status))}
         />
       </div>
     </div>

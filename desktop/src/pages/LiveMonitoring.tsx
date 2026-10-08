@@ -3,7 +3,7 @@ import Plot from 'react-plotly.js'
 import { useSearchParams } from 'react-router-dom'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { AlertTriangle } from 'lucide-react'
+import { AlertTriangle, SlidersHorizontal } from 'lucide-react'
 import { detectArrival, calculateStats, applyBandpassFilter, computeSpectrum, crossCorrelate } from '@/lib/signalProcessing'
 
 export default function LiveMonitoring() {
@@ -33,6 +33,7 @@ export default function LiveMonitoring() {
   // Continuous Running state
   const [offset, setOffset] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [showControls, setShowControls] = useState(false);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -129,6 +130,9 @@ export default function LiveMonitoring() {
         
         const vals = getSlice(allVals);
 
+        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#06b6d4', '#8b5cf6'];
+        const rgbaColors = ['rgba(59, 130, 246, 0.15)', 'rgba(16, 185, 129, 0.15)', 'rgba(245, 158, 11, 0.15)', 'rgba(6, 182, 212, 0.15)', 'rgba(139, 92, 246, 0.15)'];
+
         const traces: any[] = [{
           x: windowX,
           y: vals,
@@ -136,8 +140,8 @@ export default function LiveMonitoring() {
           mode: 'lines',
           name: ch,
           fill: 'tozeroy',
-          fillcolor: 'rgba(59, 130, 246, 0.15)',
-          line: { color: '#3b82f6', width: 2, shape: 'spline' }
+          fillcolor: rgbaColors[i % rgbaColors.length],
+          line: { color: colors[i % colors.length], width: 2, shape: 'spline' }
         }];
 
         // Plot anomalies for all channels in the array
@@ -170,7 +174,7 @@ export default function LiveMonitoring() {
              }
           });
 
-          if (anomalyPointsX.length > 0) {
+          if (anomalyPointsX.some(x => x !== null)) {
              traces.push({
                x: anomalyPointsX,
                y: anomalyPointsY,
@@ -251,7 +255,7 @@ export default function LiveMonitoring() {
              }
           });
 
-          if (anomalyPointsX.length > 0) {
+          if (anomalyPointsX.some(x => x !== null)) {
              traces.push({
                x: anomalyPointsX,
                y: anomalyPointsY,
@@ -296,6 +300,23 @@ export default function LiveMonitoring() {
     return null;
   }, [activeDataset, imaData, encr1Data]);
 
+  const isAnomalyVisible = useMemo(() => {
+    return chartData.some((plot: any) => 
+      plot.traces.some((trace: any) => trace.name === 'Anomaly Detected')
+    );
+  }, [chartData]);
+
+  useEffect(() => {
+    if (isAnomalyVisible) {
+      try {
+        const audio = new Audio('/alert.ogg');
+        audio.play().catch(e => console.error("Audio play blocked by browser policy:", e));
+      } catch (e) {
+        console.error("Audio play failed", e);
+      }
+    }
+  }, [isAnomalyVisible]);
+
   return (
     <div className="flex h-full flex-col space-y-6 p-8 overflow-y-auto">
       <div className="flex items-center justify-between">
@@ -318,10 +339,18 @@ export default function LiveMonitoring() {
           >
             ENCR1 Station
           </Button>
+          <div className="w-px h-8 bg-border mx-2" />
+          <Button 
+            variant={showControls ? 'secondary' : 'outline'}
+            onClick={() => setShowControls(!showControls)}
+          >
+            <SlidersHorizontal className="w-4 h-4 mr-2" />
+            Controls
+          </Button>
         </div>
       </div>
 
-      {datasetInfo && datasetInfo.anomalies > 0 && (
+      {isAnomalyVisible && (
         <div className="bg-destructive/15 border-l-4 border-destructive p-4 rounded-r-md flex items-start gap-4">
           <AlertTriangle className="h-6 w-6 text-destructive flex-shrink-0 mt-0.5" />
           <div>
@@ -337,80 +366,57 @@ export default function LiveMonitoring() {
 
       <div className="grid gap-6 grid-cols-1 lg:grid-cols-4">
         {/* Display Controls & Filters */}
-        <Card className="lg:col-span-1">
-          <CardHeader>
-            <CardTitle>Display Controls</CardTitle>
-            <CardDescription>Adjust waveform parameters</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Window Size (Seconds): {windowSizeSec}s</label>
-              <input 
-                type="range" 
-                min="2" max="60" step="1" 
-                value={windowSizeSec} 
-                onChange={(e) => setWindowSizeSec(Number(e.target.value))}
-                className="w-full accent-primary"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Playback Speed: {playbackSpeed}x</label>
-              <input 
-                type="range" 
-                min="0.1" max="5" step="0.1" 
-                value={playbackSpeed} 
-                onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
-                className="w-full accent-primary"
-              />
-            </div>
-            
-            <hr className="border-primary/10" />
-            
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Bandpass Filter</span>
-                <Button size="sm" variant={useFilter ? "default" : "outline"} onClick={() => setUseFilter(!useFilter)}>
-                  {useFilter ? "ON" : "OFF"}
-                </Button>
+        {showControls && (
+          <Card className="lg:col-span-1">
+            <CardHeader>
+              <CardTitle>Display Controls</CardTitle>
+              <CardDescription>Adjust waveform parameters</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Window Size (Seconds): {windowSizeSec}s</label>
+                <input 
+                  type="range" 
+                  min="2" max="60" step="1" 
+                  value={windowSizeSec} 
+                  onChange={(e) => setWindowSizeSec(Number(e.target.value))}
+                  className="w-full accent-primary"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Playback Speed: {playbackSpeed}x</label>
+                <input 
+                  type="range" 
+                  min="0.1" max="5" step="0.1" 
+                  value={playbackSpeed} 
+                  onChange={(e) => setPlaybackSpeed(Number(e.target.value))}
+                  className="w-full accent-primary"
+                />
               </div>
               
-              {useFilter && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-xs text-muted-foreground">Low Cut (Hz)</label>
-                    <input 
-                      type="number" 
-                      min="0.01" max="20" step="0.01" 
-                      value={lowCut} 
-                      onChange={(e) => setLowCut(Number(e.target.value))}
-                      className="w-full bg-background border rounded px-2 py-1 text-sm"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs text-muted-foreground">High Cut (Hz)</label>
-                    <input 
-                      type="number" 
-                      min="1" max="50" step="0.5" 
-                      value={highCut} 
-                      onChange={(e) => setHighCut(Number(e.target.value))}
-                      className="w-full bg-background border rounded px-2 py-1 text-sm"
-                    />
-                  </div>
+              <hr className="border-primary/10" />
+              
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Bandpass Filter (0.01 - 5.0 Hz)</span>
+                  <Button size="sm" variant={useFilter ? "default" : "outline"} onClick={() => setUseFilter(!useFilter)}>
+                    {useFilter ? "ON" : "OFF"}
+                  </Button>
+                </div>
+              </div>
+
+              {datasetInfo && (
+                <div className="pt-4 border-t border-primary/10 text-xs text-muted-foreground space-y-1">
+                  <div>Sample Rate: {datasetInfo.sampleRate.toFixed(1)} Hz</div>
+                  <div className="text-red-500 font-semibold">Anomalies Detected: {datasetInfo.anomalies}</div>
                 </div>
               )}
-            </div>
-
-            {datasetInfo && (
-              <div className="pt-4 border-t border-primary/10 text-xs text-muted-foreground space-y-1">
-                <div>Sample Rate: {datasetInfo.sampleRate.toFixed(1)} Hz</div>
-                <div className="text-red-500 font-semibold">Anomalies Detected: {datasetInfo.anomalies}</div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Waveform Viewer */}
-        <Card className="lg:col-span-3">
+        <Card className={showControls ? "lg:col-span-3" : "lg:col-span-4"}>
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
               <CardTitle>Continuous Waveform Viewer</CardTitle>
@@ -426,7 +432,7 @@ export default function LiveMonitoring() {
             {isLoading ? (
               <div className="h-full flex items-center justify-center">Loading...</div>
             ) : (
-              <div className={`grid gap-4 ${selectedChannel || chartData.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
+              <div className={`grid gap-4 ${selectedChannel || chartData.length === 1 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
                 {chartData
                   .filter((plotObj: any) => selectedChannel ? plotObj.name.startsWith(selectedChannel) : true)
                   .map((plotObj: any, i: number) => (

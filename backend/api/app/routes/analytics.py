@@ -138,7 +138,15 @@ class ValidationRequest(BaseModel):
 
 @router.post("/dataset/validate")
 async def run_validation(req: ValidationRequest) -> Dict[str, Any]:
-    from ....acquisition.validate import validate_miniseed_directory
+    import sys
+    import os
+    # Ensure the workspace root is in sys.path to import 'backend' package
+    root_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
+    if root_dir not in sys.path:
+        sys.path.append(root_dir)
+        
+    from backend.acquisition.validate import validate_miniseed_directory
+    
     try:
         result = await validate_miniseed_directory(req.dataset_path)
         return result

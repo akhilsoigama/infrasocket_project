@@ -1,5 +1,3 @@
-"""Database connection and session management."""
-
 import logging
 from typing import AsyncGenerator
 
@@ -33,7 +31,6 @@ def get_async_url() -> str:
     return url.replace("postgresql://", "postgresql+asyncpg://")
 
 
-# Synchronous engine (for migrations and simple operations)
 sync_engine = create_engine(get_sync_url(), echo=False)
 SyncSessionLocal = sessionmaker(bind=sync_engine, expire_on_commit=False)
 

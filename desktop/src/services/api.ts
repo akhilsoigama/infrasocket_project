@@ -79,7 +79,7 @@ export const api = {
     }),
 
   // Dataset
-  validateDataset: (datasetPath: string) =>
+  validateDataset: (datasetPath?: string) =>
     fetchApi<{ 
       status: string; 
       files_found: number;
@@ -92,6 +92,6 @@ export const api = {
       message?: string;
     }>('/analytics/dataset/validate', {
       method: 'POST',
-      body: JSON.stringify({ dataset_path: datasetPath }),
+      body: JSON.stringify(datasetPath ? { dataset_path: datasetPath } : {}),
     }),
 }

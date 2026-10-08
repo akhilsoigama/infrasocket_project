@@ -9,6 +9,7 @@ import Events from './pages/Events'
 import AIInsights from './pages/AIInsights'
 import HistoricalData from './pages/HistoricalData'
 import Settings from './pages/Settings'
+import Calibration from './pages/Calibration'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -32,6 +33,7 @@ const router = createBrowserRouter([
       { path: 'stations', element: <Stations /> },
       { path: 'events', element: <Events /> },
       { path: 'ai', element: <AIInsights /> },
+      { path: 'calibration', element: <Calibration /> },
       { path: 'history', element: <HistoricalData /> },
       { path: 'settings', element: <Settings /> },
     ],

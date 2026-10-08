@@ -17,10 +17,10 @@ export function applyBandpassFilter(data: number[], lowHz: number, highHz: numbe
   // Lowpass EMA
   const alphaLow = 1 / (1 + sampleRate / (2 * Math.PI * highHz));
   // Highpass EMA
-  const alphaHigh = 1 / (1 + sampleRate / (2 * Math.PI * lowHz));
+  const alphaHigh = 1 / (1 + (2 * Math.PI * lowHz) / sampleRate);
 
   let out = new Float64Array(data.length);
-  
+
   // Lowpass pass 1
   let lowPassed = new Float64Array(data.length);
   lowPassed[0] = data[0];
@@ -42,7 +42,7 @@ export function computeSpectrum(data: number[], sampleRate: number, maxPoints: n
   const N = Math.min(data.length, maxPoints);
   const magnitudes = new Float64Array(N / 2);
   const frequencies = new Float64Array(N / 2);
-  
+
   for (let k = 0; k < N / 2; k++) {
     let re = 0;
     let im = 0;
@@ -67,7 +67,7 @@ export function detectArrival(data: number[], sampleRate: number, staWindow: num
   let ltaSum = 0;
 
   // Initialize
-  for(let i=0; i<ltaSamples; i++) {
+  for (let i = 0; i < ltaSamples; i++) {
     const val = Math.abs(data[i]);
     ltaSum += val;
     if (i >= ltaSamples - staSamples) {
@@ -75,7 +75,7 @@ export function detectArrival(data: number[], sampleRate: number, staWindow: num
     }
   }
 
-  for(let i=ltaSamples; i<data.length; i++) {
+  for (let i = ltaSamples; i < data.length; i++) {
     const val = Math.abs(data[i]);
     const oldStaVal = Math.abs(data[i - staSamples]);
     const oldLtaVal = Math.abs(data[i - ltaSamples]);
@@ -85,7 +85,7 @@ export function detectArrival(data: number[], sampleRate: number, staWindow: num
 
     const sta = staSum / staSamples;
     const lta = ltaSum / ltaSamples;
-    
+
     if (lta > 0.0001 && (sta / lta) > threshold) {
       return i; // index of arrival
     }
@@ -100,7 +100,7 @@ export function crossCorrelate(data1: number[], data2: number[], maxLagPoints: n
   // normalize arrays
   const m1 = calculateStats(data1).mean;
   const m2 = calculateStats(data2).mean;
-  
+
   const len = Math.min(data1.length, data2.length);
 
   for (let lag = -maxLagPoints; lag <= maxLagPoints; lag++) {

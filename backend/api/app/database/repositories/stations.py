@@ -1,5 +1,3 @@
-"""Station repository for database operations."""
-
 import logging
 from datetime import datetime
 from typing import Optional
@@ -9,7 +7,6 @@ from ..models import Station
 
 logger = logging.getLogger(__name__)
 
-# Default demo stations
 DEMO_STATIONS = [
     {
         "station_id": "IMA1",
