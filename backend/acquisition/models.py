@@ -50,6 +50,8 @@ class SignalChunk:
     samples: list[float] = field(default_factory=list)
     event_type: EventType = EventType.BACKGROUND
     duration_seconds: float = 0.0
+    is_demo: bool = False
+    units: str = "Pa"
 
     @classmethod
     def from_numpy(
@@ -59,6 +61,8 @@ class SignalChunk:
         sample_rate: float,
         event_type: EventType = EventType.BACKGROUND,
         timestamp: Optional[str] = None,
+        is_demo: bool = False,
+        units: str = "Pa",
     ) -> "SignalChunk":
         """Create a SignalChunk from a NumPy array."""
         ts = timestamp or datetime.utcnow().isoformat() + "Z"
@@ -69,6 +73,8 @@ class SignalChunk:
             samples=samples.tolist(),
             event_type=event_type,
             duration_seconds=len(samples) / sample_rate,
+            is_demo=is_demo,
+            units=units,
         )
 
     def to_numpy(self) -> np.ndarray:

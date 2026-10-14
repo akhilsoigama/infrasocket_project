@@ -18,7 +18,16 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .config import settings
 from .database.connection import check_database_connection, init_database
-from .routes import analytics, demo, events, health, signals, stations
+from .routes import (
+    analytics,
+    calibration,
+    demo,
+    events,
+    hardware,
+    health,
+    signals,
+    stations,
+)
 from .websocket.manager import ws_manager
 
 logging.basicConfig(
@@ -29,7 +38,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="InfraSocket API",
-    description="AI-Powered Infrasound Monitoring & Anomaly Detection System",
+    description="Infrasound Monitoring & Signal Analysis System (Target Range 0.01 - 20 Hz)",
     version="1.0.0",
 )
 
@@ -41,11 +50,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-from .routes import analytics, demo, events, health, signals, stations
-
 # Register routes
 app.include_router(health.router, prefix="/api")
+app.include_router(hardware.router, prefix="/api")
+app.include_router(calibration.router, prefix="/api")
 app.include_router(stations.router, prefix="/api")
 app.include_router(events.router, prefix="/api")
 app.include_router(signals.router, prefix="/api")

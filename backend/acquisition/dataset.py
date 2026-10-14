@@ -200,6 +200,8 @@ class DatasetPlayer:
             station_id=station_id,
             samples=samples,
             sample_rate=self.sample_rate,
+            is_demo=False,
+            units="Pa",
         )
 
     @property

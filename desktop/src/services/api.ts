@@ -94,4 +94,36 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(datasetPath ? { dataset_path: datasetPath } : {}),
     }),
+  getDatasetsCatalog: () => fetchApi<any[]>('/analytics/datasets'),
+  getDatasetData: (name: string) => fetchApi<any>(`/analytics/dataset/${name}`),
+  importUserDataset: (payload: {
+    name: string
+    sample_rate: number
+    values: number[]
+    units?: string
+    category?: string
+    description?: string
+  }) =>
+    fetchApi<{ status: string; dataset_id: string; sample_count: number }>(
+      '/analytics/dataset/import',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }
+    ),
+
+  // Hardware Interface
+  getHardwareStatus: () => fetchApi<any>('/hardware/status'),
+  getHardwareAdapters: () => fetchApi<any[]>('/hardware/adapters'),
+  connectHardware: (config?: any) =>
+    fetchApi<any>('/hardware/connect', {
+      method: 'POST',
+      body: JSON.stringify(config || {}),
+    }),
+  disconnectHardware: () =>
+    fetchApi<any>('/hardware/disconnect', { method: 'POST' }),
+
+  // Calibration & Performance Testing
+  getCalibrationBenchmarks: () => fetchApi<any>('/calibration/benchmarks'),
 }
+

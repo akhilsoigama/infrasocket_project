@@ -2,8 +2,8 @@
 
 from fastapi import APIRouter, HTTPException
 
-from ..database.repositories.stations import StationRepository
-from ..schemas import StationResponse
+from ...database.repositories.stations import StationRepository
+from ...schemas import StationResponse
 
 router = APIRouter(prefix="/stations", tags=["stations"])
 

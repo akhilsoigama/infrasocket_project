@@ -14,10 +14,30 @@ export function useRealtimeSignal() {
     // Connect WebSocket on mount if not already connected
     wsClient.connect()
 
+    // High-performance batch queue for streaming waveform samples to prevent UI locking
+    let sampleBatch: number[] = []
+    let rafHandle: number | null = null
+
+    const flushSampleBatch = () => {
+      if (sampleBatch.length > 0) {
+        const batch = sampleBatch
+        sampleBatch = []
+        appendSamples(batch)
+      }
+      rafHandle = null
+    }
+
     const unsubscribe = wsClient.subscribe((msg: WSMessage) => {
       switch (msg.type) {
         case 'waveform':
-          appendSamples(msg.samples)
+          if (msg.samples && msg.samples.length > 0) {
+            for (let i = 0; i < msg.samples.length; i++) {
+              sampleBatch.push(msg.samples[i])
+            }
+            if (rafHandle === null) {
+              rafHandle = requestAnimationFrame(flushSampleBatch)
+            }
+          }
           break
         case 'metrics':
           setMetrics({
@@ -59,6 +79,12 @@ export function useRealtimeSignal() {
     })
 
     return () => {
+      if (rafHandle !== null) {
+        cancelAnimationFrame(rafHandle)
+      }
+      if (sampleBatch.length > 0) {
+        flushSampleBatch()
+      }
       unsubscribe()
       // Note: We don't disconnect on unmount, we keep it alive for the app lifetime
     }

@@ -1,15 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-
-import AppLayout from './layouts/AppLayout'
-import Overview from './pages/Overview'
-import LiveMonitoring from './pages/LiveMonitoring'
-import Stations from './pages/Stations'
-import Events from './pages/Events'
-import AIInsights from './pages/AIInsights'
-import HistoricalData from './pages/HistoricalData'
-import Settings from './pages/Settings'
-import Calibration from './pages/Calibration'
+import { RouterProvider } from 'react-router-dom'
+import { router } from './routes'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,31 +12,10 @@ const queryClient = new QueryClient({
   },
 })
 
-// Using BrowserRouter instead of HashRouter to remove the '#' from URLs
-const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <AppLayout />,
-    children: [
-      { index: true, element: <Overview /> },
-      { path: 'live', element: <LiveMonitoring /> },
-      // Placeholders for other pages
-      { path: 'stations', element: <Stations /> },
-      { path: 'events', element: <Events /> },
-      { path: 'ai', element: <AIInsights /> },
-      { path: 'calibration', element: <Calibration /> },
-      { path: 'history', element: <HistoricalData /> },
-      { path: 'settings', element: <Settings /> },
-    ],
-  },
-])
-
-function App() {
+export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
     </QueryClientProvider>
   )
 }
-
-export default App

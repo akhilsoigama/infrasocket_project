@@ -2,8 +2,8 @@
 
 from fastapi import APIRouter
 
-from ..schemas import FFTResponse, SignalResponse, SpectrogramResponse
-from ..services.demo_service import demo_service
+from ...schemas import FFTResponse, SignalResponse, SpectrogramResponse
+from ...services.demo_service import demo_service
 
 router = APIRouter(prefix="/signal", tags=["signals"])
 

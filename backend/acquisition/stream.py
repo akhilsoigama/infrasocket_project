@@ -10,6 +10,7 @@ from typing import AsyncGenerator, Optional
 
 from .dataset import DatasetPlayer
 from .generator import InfrasoundGenerator
+from .hardware import hardware_manager
 from .models import DataSource, EventType, SignalChunk
 
 logger = logging.getLogger(__name__)
@@ -130,8 +131,22 @@ class StreamManager:
                 chunk_size=self._chunk_size,
                 station_id=station_id,
             )
+        elif self.data_source == DataSource.LIVE_SENSOR:
+            # Poll from physical hardware interface if connected
+            if not hardware_manager.adapter.is_connected():
+                return None
+            samples, ts = hardware_manager.poll_samples(self._chunk_size)
+            if len(samples) == 0:
+                return None
+            return SignalChunk.from_numpy(
+                station_id=station_id,
+                samples=samples,
+                sample_rate=self.sample_rate,
+                timestamp=ts,
+                is_demo=False,
+                units="Pa",
+            )
         else:
-            # Live sensor: future implementation
             return None
 
     @property
@@ -149,4 +164,6 @@ class StreamManager:
             "sample_rate": self.sample_rate,
             "chunk_size": self._chunk_size,
             "has_pending_event": self.generator.has_pending_event,
+            "hardware_connected": hardware_manager.adapter.is_connected(),
+            "hardware_status": hardware_manager.get_status(),
         }

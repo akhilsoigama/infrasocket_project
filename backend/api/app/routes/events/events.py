@@ -2,9 +2,9 @@
 
 from fastapi import APIRouter, HTTPException, Query
 
-from ..database.repositories.events import EventRepository
-from ..schemas import EventDetailResponse, EventResponse
-from ..services.demo_service import demo_service
+from ...database.repositories.events import EventRepository
+from ...schemas import EventDetailResponse, EventResponse
+from ...services.demo_service import demo_service
 
 router = APIRouter(prefix="/events", tags=["events"])
 

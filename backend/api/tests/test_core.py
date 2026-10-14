@@ -3,8 +3,8 @@
 import numpy as np
 import pytest
 
-from ...acquisition.generator import InfrasoundGenerator
-from ...acquisition.models import EventType
+from acquisition.generator import InfrasoundGenerator
+from acquisition.models import EventType
 
 
 class TestInfrasoundGenerator:
@@ -77,7 +77,7 @@ class TestSignalProcessing:
         self.sample_rate = 100.0
 
     def test_normalize_zscore(self):
-        from ...signal_processing.preprocess import normalize_signal
+        from signal_processing.preprocess import normalize_signal
 
         normed = normalize_signal(self.signal, method="zscore")
         assert len(normed) == len(self.signal)
@@ -85,44 +85,44 @@ class TestSignalProcessing:
         assert abs(np.std(normed) - 1.0) < 0.01
 
     def test_normalize_minmax(self):
-        from ...signal_processing.preprocess import normalize_signal
+        from signal_processing.preprocess import normalize_signal
 
         normed = normalize_signal(self.signal, method="minmax")
         assert np.min(normed) >= -0.01
         assert np.max(normed) <= 1.01
 
     def test_normalize_peak(self):
-        from ...signal_processing.preprocess import normalize_signal
+        from signal_processing.preprocess import normalize_signal
 
         normed = normalize_signal(self.signal, method="peak")
         assert np.max(np.abs(normed)) <= 1.01
 
     def test_detrend(self):
-        from ...signal_processing.preprocess import detrend_signal
+        from signal_processing.preprocess import detrend_signal
 
         detrended = detrend_signal(self.signal, method="linear")
         assert len(detrended) == len(self.signal)
 
     def test_bandpass_filter(self):
-        from ...signal_processing.filters import bandpass_filter
+        from signal_processing.filters import bandpass_filter
 
         filtered = bandpass_filter(self.signal, 0.5, 10.0, self.sample_rate)
         assert len(filtered) == len(self.signal)
 
     def test_lowpass_filter(self):
-        from ...signal_processing.filters import lowpass_filter
+        from signal_processing.filters import lowpass_filter
 
         filtered = lowpass_filter(self.signal, 10.0, self.sample_rate)
         assert len(filtered) == len(self.signal)
 
     def test_highpass_filter(self):
-        from ...signal_processing.filters import highpass_filter
+        from signal_processing.filters import highpass_filter
 
         filtered = highpass_filter(self.signal, 1.0, self.sample_rate)
         assert len(filtered) == len(self.signal)
 
     def test_compute_fft(self):
-        from ...signal_processing.fft import compute_fft
+        from signal_processing.fft import compute_fft
 
         result = compute_fft(self.signal, self.sample_rate)
         assert len(result["frequencies"]) > 0
@@ -130,7 +130,7 @@ class TestSignalProcessing:
         assert result["n_fft"] > 0
 
     def test_compute_stft(self):
-        from ...signal_processing.spectrogram import compute_stft
+        from signal_processing.spectrogram import compute_stft
 
         result = compute_stft(self.signal, self.sample_rate, nperseg=64)
         assert len(result["times"]) > 0
@@ -138,7 +138,7 @@ class TestSignalProcessing:
         assert len(result["magnitudes"]) > 0
 
     def test_extract_features(self):
-        from ...signal_processing.features import extract_features
+        from signal_processing.features import extract_features
 
         features = extract_features(self.signal, self.sample_rate)
         assert "rms" in features
@@ -148,7 +148,7 @@ class TestSignalProcessing:
         assert features["rms"] > 0
 
     def test_pipeline(self):
-        from ...signal_processing.pipeline import process_signal
+        from signal_processing.pipeline import process_signal
 
         result = process_signal(self.signal, self.sample_rate)
         assert "processed_signal" in result
@@ -161,7 +161,7 @@ class TestAnomalyDetector:
     """Tests for the anomaly detector."""
 
     def test_fit_and_predict(self):
-        from ...ai.anomaly import AnomalyDetector
+        from ai.anomaly import AnomalyDetector
 
         detector = AnomalyDetector(contamination=0.1)
         detector.fit_on_normal_data(n_samples=50)
@@ -171,7 +171,7 @@ class TestAnomalyDetector:
         gen = InfrasoundGenerator(sample_rate=100.0, seed=99)
         chunk = gen.generate_chunk(n_samples=256)
 
-        from ...signal_processing.features import (
+        from signal_processing.features import (
             extract_features,
             features_to_vector,
         )
@@ -186,7 +186,7 @@ class TestAnomalyDetector:
         assert result["is_demo"] is True
 
     def test_unfitted_predict(self):
-        from ...ai.anomaly import AnomalyDetector
+        from ai.anomaly import AnomalyDetector
 
         detector = AnomalyDetector()
         result = detector.predict([0.0] * 11)
@@ -198,7 +198,7 @@ class TestInferenceEngine:
     """Tests for the inference engine."""
 
     def test_analyze_window(self):
-        from ...ai.inference import InferenceEngine
+        from ai.inference import InferenceEngine
 
         engine = InferenceEngine()
 

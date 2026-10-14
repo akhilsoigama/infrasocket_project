@@ -166,8 +166,8 @@ class AnomalyDetector(BaseDetector):
         Args:
             n_samples: Number of normal windows to generate.
         """
-        from ..acquisition.generator import InfrasoundGenerator
-        from ..signal_processing.features import extract_features, features_to_vector
+        from acquisition.generator import InfrasoundGenerator
+        from signal_processing.features import extract_features, features_to_vector
 
         logger.info("Auto-fitting anomaly detector on %d normal windows", n_samples)
 

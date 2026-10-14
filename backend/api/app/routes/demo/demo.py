@@ -2,14 +2,14 @@
 
 from fastapi import APIRouter
 
-from ..schemas import (
+from ...schemas import (
     AnalysisRequest,
     AnalysisResponse,
     DemoStartRequest,
     DemoStatusResponse,
     InjectEventRequest,
 )
-from ..services.demo_service import demo_service
+from ...services.demo_service import demo_service
 
 router = APIRouter(prefix="/demo", tags=["demo"])
 

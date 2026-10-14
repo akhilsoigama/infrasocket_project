@@ -216,3 +216,69 @@ export type WSMessage =
   | WSMetricsMessage
   | WSAIStatusMessage
   | WSEventMessage
+
+/** Hardware connection and interface status */
+export interface HardwareStatus {
+  is_connected: boolean
+  connection_state: 'disconnected' | 'connecting' | 'connected' | 'standby' | 'error'
+  status_message: string
+  model_name: string
+  device_id: string
+  interface_type: string
+  target_frequency_range_hz: {
+    min: number
+    max: number
+  }
+  nominal_sample_rate: number
+  latest_measured_pressure_pa: number | null
+  last_read_timestamp: string | null
+  buffer_size: number
+  hardware_validated: boolean
+  pipeline_stages: Array<{
+    stage: number
+    name: string
+    status: string
+  }>
+}
+
+/** Calibration benchmark test descriptor */
+export interface CalibrationBenchmark {
+  test_id: string
+  name: string
+  category: string
+  status: 'measured' | 'pending_validation' | 'not_measured' | 'planned_test'
+  target_spec: string
+  calibration_method: string
+  reference_device: string
+  test_date: string | null
+  measured_result: string
+  empirical_data_available: boolean
+  notes: string
+}
+
+/** Complete calibration suite response */
+export interface CalibrationSuite {
+  system_name: string
+  target_frequency_range: {
+    min_hz: number
+    max_hz: number
+    scientific_significance: string
+  }
+  overall_hardware_status: string
+  disclaimer: string
+  tests: CalibrationBenchmark[]
+}
+
+/** Recorded dataset catalog item */
+export interface DatasetCatalogItem {
+  id: string
+  name: string
+  category: 'explosion' | 'volcano' | 'ambient' | 'custom'
+  source: string
+  sample_rate_hz: number
+  target_band_hz: [number, number]
+  units: string
+  channels: string[]
+  description: string
+}
+

@@ -182,6 +182,9 @@ class DemoService:
                     "timestamp": chunk.timestamp,
                     "sample_rate": sample_rate,
                     "samples": chunk.samples,
+                    "is_demo": True,
+                    "units": "Pa (Synthetic)",
+                    "data_source": "demo",
                     "event_type": chunk.event_type.value
                     if hasattr(chunk.event_type, "value")
                     else str(chunk.event_type),
@@ -198,9 +201,12 @@ class DemoService:
                         features["dominant_frequency_hz"], 3
                     ),
                     "signal_quality": round(signal_quality, 1),
+                    "units": "Pa",
+                    "is_demo": True,
+                    "target_band_hz": [0.01, 20.0],
                 })
 
-                # Broadcast AI status
+                # Broadcast AI status (accurately noting rule-based / statistical outlier engine)
                 anomaly_info = ai_result.get("anomaly", {})
                 classification = ai_result.get("classification", {})
                 await ws_manager.broadcast({
@@ -211,6 +217,7 @@ class DemoService:
                     "confidence": classification.get("confidence", 0.0),
                     "model_version": anomaly_info.get("model_version", "demo-v1"),
                     "is_demo": True,
+                    "classification_method": "Rule-based heuristic & Isolation Forest outlier detection (Demo)",
                 })
 
                 # If anomaly detected, create event

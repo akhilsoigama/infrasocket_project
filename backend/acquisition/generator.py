@@ -371,6 +371,8 @@ class InfrasoundGenerator:
             samples=signal,
             sample_rate=self.sample_rate,
             event_type=event_type,
+            is_demo=True,
+            units="Pa (Synthetic)",
         )
 
     def stream_samples(

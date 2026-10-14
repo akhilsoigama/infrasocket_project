@@ -4,9 +4,9 @@ import time
 
 from fastapi import APIRouter
 
-from ..config import settings
-from ..database.connection import check_database_connection
-from ..schemas import HealthResponse
+from ...config import settings
+from ...database.connection import check_database_connection
+from ...schemas import HealthResponse
 
 router = APIRouter(tags=["health"])
 
