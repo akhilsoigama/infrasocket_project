@@ -31,7 +31,8 @@ def get_async_url() -> str:
     return url.replace("postgresql://", "postgresql+asyncpg://")
 
 
-sync_engine = create_engine(get_sync_url(), echo=False)
+sync_connect_args = {"connect_timeout": 3} if "postgresql" in get_sync_url() else {}
+sync_engine = create_engine(get_sync_url(), echo=False, connect_args=sync_connect_args)
 SyncSessionLocal = sessionmaker(bind=sync_engine, expire_on_commit=False)
 
 
