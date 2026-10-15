@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { wsClient } from '@/services/websocket'
 import { useSignalStore } from '@/stores/signalStore'
 import { useEventStore } from '@/stores/eventStore'
+import { playAlertSound } from '@/utils/sound'
 import type { WSMessage } from '@/types'
 
 export function useRealtimeSignal() {
@@ -58,6 +59,9 @@ export function useRealtimeSignal() {
             model_version: msg.model_version,
             is_demo: msg.is_demo,
           })
+          if (msg.is_anomaly) {
+            playAlertSound()
+          }
           break
         case 'event':
           addEvent({
@@ -74,6 +78,9 @@ export function useRealtimeSignal() {
             status: 'detected',
             is_demo: true,
           })
+          if (msg.is_anomaly) {
+            playAlertSound()
+          }
           break
       }
     })

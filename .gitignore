@@ -79,3 +79,5 @@ backend/data/
 backend/models/*.pt
 backend/models/*.pth
 backend/models/*.bin
+
+dataset/

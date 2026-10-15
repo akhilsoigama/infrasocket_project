@@ -8,6 +8,7 @@ interface SystemState {
   health: SystemHealth | null
   sidebarCollapsed: boolean
   dataSource: 'demo' | 'dataset' | 'live_sensor'
+  audioMuted: boolean
 
   setApiStatus: (s: ConnectionStatus) => void
   setDbStatus: (s: ConnectionStatus) => void
@@ -16,6 +17,8 @@ interface SystemState {
   toggleSidebar: () => void
   setSidebarCollapsed: (c: boolean) => void
   setDataSource: (d: 'demo' | 'dataset' | 'live_sensor') => void
+  setAudioMuted: (m: boolean) => void
+  toggleAudioMuted: () => void
 }
 
 export const useSystemStore = create<SystemState>((set) => ({
@@ -25,6 +28,7 @@ export const useSystemStore = create<SystemState>((set) => ({
   health: null,
   sidebarCollapsed: false,
   dataSource: 'demo',
+  audioMuted: false,
 
   setApiStatus: (s) => set({ apiStatus: s }),
   setDbStatus: (s) => set({ dbStatus: s }),
@@ -39,4 +43,6 @@ export const useSystemStore = create<SystemState>((set) => ({
     set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
   setSidebarCollapsed: (c) => set({ sidebarCollapsed: c }),
   setDataSource: (d) => set({ dataSource: d }),
+  setAudioMuted: (m) => set({ audioMuted: m }),
+  toggleAudioMuted: () => set((state) => ({ audioMuted: !state.audioMuted })),
 }))

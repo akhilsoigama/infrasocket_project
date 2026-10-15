@@ -32,6 +32,7 @@ import { api } from '@/services/api'
 import { useSystemStore } from '@/stores/systemStore'
 import { useSignalStore } from '@/stores/signalStore'
 import { useDemoStore } from '@/stores/demoStore'
+import { playAlertSound } from '@/utils/sound'
 
 type MonitoringMode = 'live_sensor' | 'dataset' | 'demo'
 
@@ -442,6 +443,12 @@ export default function LiveMonitoring() {
       plot.traces.some((trace: any) => trace.name === 'Heuristic Outlier')
     )
   }, [chartData])
+
+  useEffect(() => {
+    if (isAnomalyVisible) {
+      playAlertSound()
+    }
+  }, [isAnomalyVisible])
 
   return (
     <div className="flex h-full flex-col space-y-4 sm:space-y-6 p-4 sm:p-6 lg:p-8 overflow-y-auto min-w-0">

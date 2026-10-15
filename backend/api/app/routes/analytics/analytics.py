@@ -39,9 +39,14 @@ import logging
 
 logger = logging.getLogger("InfraSocket")
 
-DATASET_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../dataset"))
+DATASET_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../Dataset"))
+if not os.path.exists(DATASET_DIR):
+    DATASET_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../dataset"))
+
 IMA_FILE = os.path.join(DATASET_DIR, "IMA_array_infrasound_waveform_v1.csv")
+IMA_MSEED = os.path.join(DATASET_DIR, "IMA_array_infrasound_waveform_v1.mseed")
 ENCR1_FILE = os.path.join(DATASET_DIR, "fdsnws-dataselect_2026-10-03t05_11_02z.csv")
+ENCR1_MSEED = os.path.join(DATASET_DIR, "fdsnws-dataselect_2026-10-03t05_11_02z.mseed")
 
 def filter_infrasound(values: List[float], fs: float, lowcut: float = 0.01, highcut: float = 5.0) -> List[float]:
     if not values or len(values) < 30:
@@ -72,20 +77,32 @@ def detect_anomalies_zscore(values: List[float], threshold: float = 3.0) -> List
 @router.get("/dataset/{dataset_name}")
 async def get_dataset(dataset_name: str) -> Dict[str, Any]:
     if dataset_name == "IMA":
-        if not os.path.exists(IMA_FILE):
-            raise HTTPException(status_code=404, detail="IMA dataset not found")
-        
         headers = []
         data = []
         values_ima1 = []
-        with open(IMA_FILE, 'r') as f:
-            reader = csv.reader(f)
-            headers = next(reader)
-            for row in reader:
-                if not row: continue
-                parsed = [float(x) for x in row]
-                data.append(parsed)
-                values_ima1.append(parsed[1])
+        
+        if os.path.exists(IMA_FILE):
+            with open(IMA_FILE, 'r') as f:
+                reader = csv.reader(f)
+                headers = next(reader)
+                for row in reader:
+                    if not row: continue
+                    parsed = [float(x) for x in row]
+                    data.append(parsed)
+                    values_ima1.append(parsed[1])
+        elif os.path.exists(IMA_MSEED):
+            import obspy
+            st = obspy.read(IMA_MSEED)
+            headers = ["Time"] + [tr.stats.channel for tr in st]
+            fs = st[0].stats.sampling_rate
+            min_len = min(len(tr.data) for tr in st)
+            for i in range(min_len):
+                t_sec = round(i / fs, 4)
+                row = [t_sec] + [float(tr.data[i]) for tr in st]
+                data.append(row)
+                values_ima1.append(float(st[0].data[i]))
+        else:
+            raise HTTPException(status_code=404, detail="IMA dataset not found")
                 
         filtered_values = filter_infrasound(values_ima1, fs=40.0, lowcut=0.01, highcut=5.0)
         anomalies = detect_anomalies_zscore(filtered_values, threshold=3.5)
@@ -99,26 +116,41 @@ async def get_dataset(dataset_name: str) -> Dict[str, Any]:
         }
         
     elif dataset_name == "ENCR1":
-        if not os.path.exists(ENCR1_FILE):
-            raise HTTPException(status_code=404, detail="ENCR1 dataset not found")
-        
         data = []
         values = []
-        with open(ENCR1_FILE, 'r') as f:
-            reader = csv.reader(f)
-            headers = next(reader)
-            count = 0
-            for row in reader:
-                if not row or len(row) < 8: continue
-                if count % 5 == 0:
-                    val = float(row[7])
-                    data.append({
-                        "time": row[0],
-                        "sample_rate": float(row[5]),
-                        "value": val
-                    })
-                    values.append(val)
-                count += 1
+        
+        if os.path.exists(ENCR1_FILE):
+            with open(ENCR1_FILE, 'r') as f:
+                reader = csv.reader(f)
+                headers = next(reader)
+                count = 0
+                for row in reader:
+                    if not row or len(row) < 8: continue
+                    if count % 5 == 0:
+                        val = float(row[7])
+                        data.append({
+                            "time": row[0],
+                            "sample_rate": float(row[5]),
+                            "value": val
+                        })
+                        values.append(val)
+                    count += 1
+        elif os.path.exists(ENCR1_MSEED):
+            import obspy
+            st = obspy.read(ENCR1_MSEED)
+            tr = st[0]
+            raw_data = tr.data.tolist()
+            subset = raw_data[::5]  # Decimate 100 Hz by 5 to 20 Hz
+            fs = tr.stats.sampling_rate / 5.0
+            for i, val in enumerate(subset[:4000]):
+                data.append({
+                    "time": str(tr.stats.starttime + i / fs),
+                    "sample_rate": fs,
+                    "value": float(val)
+                })
+                values.append(float(val))
+        else:
+            raise HTTPException(status_code=404, detail="ENCR1 dataset not found")
                 
         filtered_values = filter_infrasound(values, fs=20.0, lowcut=0.01, highcut=5.0)
         anomalies = detect_anomalies_zscore(filtered_values, threshold=4.0)
