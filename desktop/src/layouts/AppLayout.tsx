@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import {
-  ChevronLeft,
   Menu,
+  PanelLeft,
   Play,
   StopCircle,
   Volume2,
@@ -42,13 +42,12 @@ function MobileUtcClock() {
 export default function AppLayout() {
   const [isCollapsed, setIsCollapsed] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isAudioMuted, setIsAudioMuted] = useState(false)
   const [logoError, setLogoError] = useState(false)
   const { pathname, search } = useLocation()
   const queryParams = new URLSearchParams(search)
   const activeStation = queryParams.get('station')
-  
-  const { setHealth, apiStatus, dbStatus, wsStatus } = useSystemStore()
+
+  const { setHealth, apiStatus, dbStatus, wsStatus, audioMuted, toggleAudioMuted } = useSystemStore()
   const { isRunning, setStatus } = useDemoStore()
 
   // Connect to websocket globally
@@ -107,7 +106,7 @@ export default function AppLayout() {
 
           {/* Logo with /logo.png */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="relative flex h-8 w-8 items-center justify-center rounded-lg overflow-hidden border border-primary/40 bg-card shadow-[0_0_12px_rgba(56,189,248,0.25)] flex-shrink-0">
+            <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden  bg-card flex-shrink-0">
               {!logoError ? (
                 <img
                   src="/logo.png"
@@ -157,11 +156,11 @@ export default function AppLayout() {
           {/* Mute Audio Alerts Toggle */}
           <button
             type="button"
-            onClick={() => setIsAudioMuted(!isAudioMuted)}
-            title={isAudioMuted ? 'Unmute Audio Alerts' : 'Mute Audio Alerts'}
+            onClick={toggleAudioMuted}
+            title={audioMuted ? 'Unmute Audio Alerts' : 'Mute Audio Alerts'}
             className="flex h-8 w-8 items-center justify-center rounded-md border border-border/60 bg-background/80 text-muted-foreground hover:text-foreground hover:bg-card transition-colors flex-shrink-0"
           >
-            {isAudioMuted ? <VolumeX className="h-4 w-4 text-destructive" /> : <Volume2 className="h-4 w-4" />}
+            {audioMuted ? <VolumeX className="h-4 w-4 text-destructive" /> : <Volume2 className="h-4 w-4" />}
           </button>
 
           {/* WebSocket Live Telemetry Indicator */}
@@ -220,13 +219,39 @@ export default function AppLayout() {
         >
           {/* Navigation Links Grouped by Category */}
           <nav className="flex-1 space-y-4 p-3 overflow-y-auto overflow-x-hidden">
+            {isCollapsed && (
+              <div className="flex justify-center pb-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCollapsed(false)}
+                  title="Expand Sidebar"
+                  aria-label="Expand Sidebar"
+                  className="flex h-7 w-7 items-center justify-center rounded border border-transparent hover:border-border/60 hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <PanelLeft className="h-4 w-4" />
+                </button>
+              </div>
+            )}
             {categories.map((category) => {
               const items = ROUTE_ITEMS.filter((item) => item.category === category)
               return (
                 <div key={category} className="space-y-1">
                   {!isCollapsed && (
-                    <div className="px-3 py-1 text-3xs font-bold uppercase tracking-widest text-muted-foreground/80 font-mono">
-                      {category}
+                    <div className="flex items-center justify-between px-3 py-1">
+                      <span className="text-3xs font-bold uppercase tracking-widest text-muted-foreground/80 font-mono">
+                        {category}
+                      </span>
+                      {category === 'TELEMETRY' && (
+                        <button
+                          type="button"
+                          onClick={() => setIsCollapsed(true)}
+                          title="Collapse Sidebar"
+                          aria-label="Collapse Sidebar"
+                          className="flex h-6 w-6 items-center justify-center rounded border border-transparent hover:border-border/60 hover:bg-muted/40 text-muted-foreground hover:text-foreground transition-colors"
+                        >
+                          <PanelLeft className="h-3.5 w-3.5" />
+                        </button>
+                      )}
                     </div>
                   )}
 
@@ -300,17 +325,6 @@ export default function AppLayout() {
                 />
               </div>
             )}
-
-            {/* Collapse toggle button */}
-            <button
-              onClick={() => setIsCollapsed(!isCollapsed)}
-              type="button"
-              className="mt-3 flex w-full items-center justify-center gap-1 rounded border border-border/40 bg-muted/20 py-1 text-3xs font-mono text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors"
-              title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-            >
-              {isCollapsed ? <Menu className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
-              {!isCollapsed && <span>COLLAPSE</span>}
-            </button>
           </div>
         </aside>
 
